@@ -1,0 +1,68 @@
+{
+    "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+    "name": "Lambda",
+    "scopeName": "source.lba",
+    "patterns": [
+        {
+            "include": "#keywords"
+        },
+        {
+            "include": "#strings"
+        },
+        {
+            "include": "#comments"
+        },
+        {
+            "include": "#numbers"
+        },
+        {
+            "include": "#entities"
+        }
+    ],
+    "repository": {
+        "keywords": {
+            "patterns": [
+                {
+                    "name": "keyword.control.lambda",
+                    "match": "\\b(if|else)\\b"
+                },
+                {
+                    "name": "keyword.other.lambda",
+                    "match": "\\b(let|fn|print|class|static|ui)\\b"
+                },
+                {
+                    "name": "variable.language.this.lambda",
+                    "match": "\\b(this)\\b"
+                }
+            ]
+        },
+        "strings": {
+            "name": "string.quoted.double.lambda",
+            "begin": "\"",
+            "end": "\"",
+            "patterns": [
+                {
+                    "name": "constant.character.escape.lambda",
+                    "match": "\\\\."
+                }
+            ]
+        },
+        "comments": {
+            "name": "comment.line.double-slash.lambda",
+            "begin": "\\*\\*",
+            "end": "\\*\\*"
+        },
+        "numbers": {
+            "name": "constant.numeric.lambda",
+            "match": "\\b\\d+(\\.\\d+)?\\b"
+        },
+        "entities": {
+            "patterns": [
+                {
+                    "name": "entity.name.function.lambda",
+                    "match": "\\b(Window|Button|clock|Label)\\b"
+                }
+            ]
+        }
+    }
+}

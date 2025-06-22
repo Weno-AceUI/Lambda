@@ -1,31 +1,42 @@
 export const TokenType = {
-  // Single-character tokens.
-  LEFT_PAREN: 'LEFT_PAREN',
-  RIGHT_PAREN: 'RIGHT_PAREN',
-  LEFT_BRACE: 'LEFT_BRACE',
-  RIGHT_BRACE: 'RIGHT_BRACE',
-  COMMA: 'COMMA',
-  DOT: 'DOT',
-  MINUS: 'MINUS',
-  PLUS: 'PLUS',
-  SEMICOLON: 'SEMICOLON',
-  SLASH: 'SLASH',
-  STAR: 'STAR',
+    // Single-character tokens.
+    LEFT_PAREN: 'LEFT_PAREN',
+    RIGHT_PAREN: 'RIGHT_PAREN',
+    LEFT_BRACE: 'LEFT_BRACE',
+    RIGHT_BRACE: 'RIGHT_BRACE',
+    COMMA: 'COMMA',
+    DOT: 'DOT',
+    MINUS: 'MINUS',
+    PLUS: 'PLUS',
+    SEMICOLON: 'SEMICOLON',
+    SLASH: 'SLASH',
+    STAR: 'STAR',
 
-  // One or two character tokens.
-  EQUAL: 'EQUAL',
+    // One or two character tokens.
+    BANG: 'BANG',
+    BANG_EQUAL: 'BANG_EQUAL',
+    EQUAL_EQUAL: 'EQUAL_EQUAL',
+    GREATER: 'GREATER',
+    GREATER_EQUAL: 'GREATER_EQUAL',
+    LESS: 'LESS',
+    LESS_EQUAL: 'LESS_EQUAL',
+    EQUAL: 'EQUAL',
 
-  // Literals.
-  IDENTIFIER: 'IDENTIFIER',
-  STRING: 'STRING',
-  NUMBER: 'NUMBER',
+    // Literals.
+    IDENTIFIER: 'IDENTIFIER',
+    STRING: 'STRING',
+    NUMBER: 'NUMBER',
 
-  // Keywords.
-  LET: 'LET',
-  FN: 'FN',
-  IF: 'IF',
-  ELSE: 'ELSE',
-  PRINT: 'PRINT',
+    // Keywords.
+    CLASS: 'CLASS',
+    ELSE: 'ELSE',
+    FN: 'FN',
+    IF: 'IF',
+    LET: 'LET',
+    PRINT: 'PRINT',
+    THIS: 'THIS',
+    STATIC: 'STATIC',
+    UI: 'UI',
 
-  EOF: 'EOF' // End of File
+    EOF: 'EOF'
 };

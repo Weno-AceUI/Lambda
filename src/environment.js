@@ -1,6 +1,3 @@
-/**
- * A custom error class for reporting errors that happen at runtime.
- */
 export class RuntimeError extends Error {
     constructor(token, message) {
         super(message);
@@ -8,24 +5,35 @@ export class RuntimeError extends Error {
     }
 }
 
-/**
- * Manages the state of variables (bindings) in the language.
- */
 export class Environment {
     constructor(enclosing = null) {
-        this.values = {};
-        this.enclosing = enclosing; // For handling nested scopes later
+        this.values = new Map();
+        this.enclosing = enclosing;
     }
 
     define(name, value) {
-        this.values[name] = value;
+        this.values.set(name, value);
     }
 
-    get(nameToken) {
-        if (this.values.hasOwnProperty(nameToken.lexeme)) {
-            return this.values[nameToken.lexeme];
+    get(name) {
+        if (this.values.has(name.lexeme)) {
+            return this.values.get(name.lexeme);
         }
+        if (this.enclosing !== null) {
+            return this.enclosing.get(name);
+        }
+        throw new RuntimeError(name, `Undefined variable '${name.lexeme}'.`);
+    }
 
-        throw new RuntimeError(nameToken, `Undefined variable '${nameToken.lexeme}'.`);
+    assign(name, value) {
+        if (this.values.has(name.lexeme)) {
+            this.values.set(name.lexeme, value);
+            return;
+        }
+        if (this.enclosing !== null) {
+            this.enclosing.assign(name, value);
+            return;
+        }
+        throw new RuntimeError(name, `Undefined variable '${name.lexeme}'.`);
     }
 }

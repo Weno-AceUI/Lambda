@@ -43,9 +43,32 @@ export class Lexer {
             case '-': this.addToken(TokenType.MINUS); break;
             case '+': this.addToken(TokenType.PLUS); break;
             case ';': this.addToken(TokenType.SEMICOLON); break;
-            case '*': this.addToken(TokenType.STAR); break;
+            case '*':
+                if (this.match('*')) {
+                    // A block comment. Consume until the closing **
+                    while (!(this.peek() === '*' && this.peekNext() === '*') && !this.isAtEnd()) {
+                        if (this.peek() === '\n') this.line++;
+                        this.advance();
+                    }
+
+                    if (this.isAtEnd()) {
+                        console.error(`[line ${this.line}] Unterminated comment.`);
+                    } else {
+                        // Consume the closing '**'
+                        this.advance();
+                        this.advance();
+                    }
+                } else {
+                    this.addToken(TokenType.STAR);
+                }
+                break;
             case '/': this.addToken(TokenType.SLASH); break;
-            case '=': this.addToken(TokenType.EQUAL); break;
+
+            // Two-character tokens
+            case '!': this.addToken(this.match('=') ? TokenType.BANG_EQUAL : TokenType.BANG); break;
+            case '=': this.addToken(this.match('=') ? TokenType.EQUAL_EQUAL : TokenType.EQUAL); break;
+            case '<': this.addToken(this.match('=') ? TokenType.LESS_EQUAL : TokenType.LESS); break;
+            case '>': this.addToken(this.match('=') ? TokenType.GREATER_EQUAL : TokenType.GREATER); break;
 
             case '"': this.string(); break;
 
@@ -80,6 +103,14 @@ export class Lexer {
         this.tokens.push({ type, lexeme: text, literal, line: this.line });
     }
 
+    match(expected) {
+        if (this.isAtEnd()) return false;
+        if (this.source.charAt(this.current) !== expected) return false;
+
+        this.current++;
+        return true;
+    }
+
     isDigit(c) {
         return c >= '0' && c <= '9';
     }
@@ -97,6 +128,11 @@ export class Lexer {
     peek() {
         if (this.isAtEnd()) return '\0';
         return this.source.charAt(this.current);
+    }
+
+    peekNext() {
+        if (this.current + 1 >= this.source.length) return '\0';
+        return this.source.charAt(this.current + 1);
     }
 
     number() {

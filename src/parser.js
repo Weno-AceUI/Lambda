@@ -26,6 +26,8 @@ export class Parser {
 
     declaration() {
         try {
+            if (this.match(TokenType.CLASS)) return this.classDeclaration();
+            if (this.match(TokenType.UI)) return this.uiDeclaration();
             if (this.match(TokenType.LET)) return this.varDeclaration();
 
             return this.statement();
@@ -37,11 +39,41 @@ export class Parser {
         }
     }
 
+    classDeclaration() {
+        const name = this.consume(TokenType.IDENTIFIER, "Expect class name.");
+        this.consume(TokenType.LEFT_BRACE, "Expect '{' before class body.");
+
+        const methods = [];
+        while (!this.check(TokenType.RIGHT_BRACE) && !this.isAtEnd()) {
+            const isStatic = this.match(TokenType.STATIC);
+            const method = this.function("method");
+            methods.push({ ...method, isStatic });
+        }
+
+        this.consume(TokenType.RIGHT_BRACE, "Expect '}' after class body.");
+        return { type: 'ClassStatement', name: name, methods: methods };
+    }
+
     statement() {
         if (this.match(TokenType.PRINT)) return this.printStatement();
+        if (this.match(TokenType.LEFT_BRACE)) return { type: 'BlockStatement', statements: this.block() };
 
-        // In the future, we could parse expression statements here.
-        throw this.error(this.peek(), "Expected a statement.");
+        return this.expressionStatement();
+    }
+
+    block() {
+        const statements = [];
+        while (!this.check(TokenType.RIGHT_BRACE) && !this.isAtEnd()) {
+            statements.push(this.declaration());
+        }
+        this.consume(TokenType.RIGHT_BRACE, "Expect '}' after block.");
+        return statements;
+    }
+
+    expressionStatement() {
+        const expr = this.expression();
+        this.consume(TokenType.SEMICOLON, "Expect ';' after expression.");
+        return { type: 'ExpressionStatement', expression: expr };
     }
 
     varDeclaration() {
@@ -61,6 +93,23 @@ export class Parser {
         };
     }
 
+    uiDeclaration() {
+        const name = this.consume(TokenType.IDENTIFIER, 'Expect UI component name.');
+
+        let initializer = null;
+        if (this.match(TokenType.EQUAL)) {
+            initializer = this.expression();
+        }
+
+        this.consume(TokenType.SEMICOLON, "Expect ';' after UI declaration.");
+
+        return {
+            type: 'UiStatement',
+            name: name,
+            initializer: initializer
+        };
+    }
+
     printStatement() {
         const value = this.expression();
         this.consume(TokenType.SEMICOLON, "Expect ';' after value.");
@@ -68,9 +117,85 @@ export class Parser {
     }
 
     expression() {
-        // For now, our only expression is a literal number.
-        // This will be expanded greatly to handle binary ops, etc.
+        return this.equality();
+    }
+
+    equality() {
+        let expr = this.comparison();
+
+        while (this.match(TokenType.BANG_EQUAL, TokenType.EQUAL_EQUAL)) {
+            const operator = this.previous();
+            const right = this.comparison();
+            expr = { type: 'BinaryExpression', left: expr, operator: operator, right: right };
+        }
+
+        return expr;
+    }
+
+    comparison() {
+        let expr = this.term();
+
+        while (this.match(TokenType.GREATER, TokenType.GREATER_EQUAL, TokenType.LESS, TokenType.LESS_EQUAL)) {
+            const operator = this.previous();
+            const right = this.term();
+            expr = { type: 'BinaryExpression', left: expr, operator: operator, right: right };
+        }
+
+        return expr;
+    }
+
+    term() {
+        let expr = this.factor();
+
+        while (this.match(TokenType.MINUS, TokenType.PLUS)) {
+            const operator = this.previous();
+            const right = this.factor();
+            expr = { type: 'BinaryExpression', left: expr, operator: operator, right: right };
+        }
+
+        return expr;
+    }
+
+    factor() {
+        let expr = this.unary();
+
+        while (this.match(TokenType.SLASH, TokenType.STAR)) {
+            const operator = this.previous();
+            const right = this.unary();
+            expr = { type: 'BinaryExpression', left: expr, operator: operator, right: right };
+        }
+
+        return expr;
+    }
+
+    unary() {
+        if (this.match(TokenType.BANG, TokenType.MINUS)) {
+            const operator = this.previous();
+            const right = this.unary();
+            return { type: 'UnaryExpression', operator: operator, right: right };
+        }
         return this.call();
+    }
+
+    assignment() {
+        const expr = this.call();
+
+        if (this.match(TokenType.EQUAL)) {
+            const equals = this.previous();
+            const value = this.assignment();
+
+            if (expr.type === 'VariableExpression') {
+                const name = expr.name;
+                return { type: 'AssignExpression', name: name, value: value };
+            } else if (expr.type === 'GetExpression') {
+                const setExpr = { type: 'SetExpression', object: expr.object, name: expr.name, value: value };
+                return setExpr;
+            }
+
+            this.error(equals, "Invalid assignment target.");
+        }
+
+        return expr;
     }
 
     call() {
@@ -78,10 +203,17 @@ export class Parser {
 
         while (true) {
             if (this.match(TokenType.LEFT_PAREN)) {
-                // For now, we don't support arguments, but we parse them.
-                // We'll add argument parsing logic here later.
+                const args = [];
+                if (!this.check(TokenType.RIGHT_PAREN)) {
+                    do {
+                        args.push(this.expression());
+                    } while (this.match(TokenType.COMMA));
+                }
                 this.consume(TokenType.RIGHT_PAREN, "Expect ')' after arguments.");
-                expr = { type: 'CallExpression', callee: expr, arguments: [] };
+                expr = { type: 'CallExpression', callee: expr, arguments: args };
+            } else if (this.match(TokenType.DOT)) {
+                const name = this.consume(TokenType.IDENTIFIER, "Expect property name after '.'.");
+                expr = { type: 'GetExpression', object: expr, name: name };
             } else {
                 break;
             }
@@ -91,6 +223,10 @@ export class Parser {
     }
 
     primary() {
+        if (this.match(TokenType.TRUE)) return { type: 'LiteralExpression', value: true };
+        if (this.match(TokenType.FALSE)) return { type: 'LiteralExpression', value: false };
+        if (this.match(TokenType.NIL)) return { type: 'LiteralExpression', value: null };
+
         if (this.match(TokenType.NUMBER)) {
             return { type: 'LiteralExpression', value: this.previous().literal };
         }
@@ -99,11 +235,35 @@ export class Parser {
             return { type: 'LiteralExpression', value: this.previous().literal };
         }
 
+        if (this.match(TokenType.THIS)) {
+            return { type: 'ThisExpression', keyword: this.previous() };
+        }
+
         if (this.match(TokenType.IDENTIFIER)) {
             return { type: 'VariableExpression', name: this.previous() };
         }
 
         throw this.error(this.peek(), "Expect expression.");
+    }
+
+    function(kind) {
+        const name = this.consume(TokenType.IDENTIFIER, `Expect ${kind} name.`);
+        this.consume(TokenType.LEFT_PAREN, `Expect '(' after ${kind} name.`);
+        const parameters = [];
+        if (!this.check(TokenType.RIGHT_PAREN)) {
+            do {
+                if (parameters.length >= 255) {
+                    this.error(this.peek(), "Can't have more than 255 parameters.");
+                }
+                parameters.push(this.consume(TokenType.IDENTIFIER, "Expect parameter name."));
+            } while (this.match(TokenType.COMMA));
+        }
+        this.consume(TokenType.RIGHT_PAREN, "Expect ')' after parameters.");
+
+        this.consume(TokenType.LEFT_BRACE, `Expect '{' before ${kind} body.`);
+        const body = this.block();
+
+        return { type: 'FunctionStatement', name, params: parameters, body };
     }
 
     // --- Parser Helper Methods ---

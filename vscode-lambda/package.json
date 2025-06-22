@@ -1,0 +1,30 @@
+{
+    "name": "vscode-lambda",
+    "displayName": "Lambda Language Support",
+    "description": "Syntax highlighting for the Lambda programming language for OpenAce.",
+    "version": "0.0.1",
+    "publisher": "lambda-lang",
+    "engines": {
+        "vscode": "^1.70.0"
+    },
+    "categories": [
+        "Programming Languages"
+    ],
+    "contributes": {
+        "languages": [
+            {
+                "id": "lambda",
+                "aliases": ["Lambda", "lambda"],
+                "extensions": [".lba"],
+                "configuration": "./language-configuration.json"
+            }
+        ],
+        "grammars": [
+            {
+                "language": "lambda",
+                "scopeName": "source.lba",
+                "path": "./syntaxes/lambda.tmLanguage.json"
+            }
+        ]
+    }
+}

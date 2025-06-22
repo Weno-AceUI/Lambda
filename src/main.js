@@ -1,6 +1,7 @@
 import { Lexer } from './lexer.js';
 import { Parser } from './parser.js';
 import { Interpreter } from './interpreter.js';
+import { TokenType } from './token.js'; // For potential debugging
 
 function run(source) {
     const lexer = new Lexer(source);
@@ -9,8 +10,7 @@ function run(source) {
     const parser = new Parser(tokens);
     const statements = parser.parse();
 
-    // A simple check to see if any statement failed to parse
-    if (statements.some(s => s === null)) {
+    if (parser.errors > 0) { // A better check would be to have an error count in the parser
         console.error("Execution halted due to parsing errors.");
         return;
     }
@@ -20,7 +20,10 @@ function run(source) {
 }
 
 const sampleCode = `
-print "The time is:";
-print clock();
+let greeting = "Hello, " + "World!";
+print greeting;
+
+let calculation = (10 * 2) + (100 / 5);
+print "The result is: " + calculation;
 `;
 run(sampleCode);
