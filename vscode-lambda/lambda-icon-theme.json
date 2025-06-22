@@ -1,0 +1,10 @@
+{
+    "iconDefinitions": {
+        "_lambda_icon": {
+            "iconPath": "./lambda-icon.svg"
+        }
+    },
+    "fileExtensions": {
+        "lba": "_lambda_icon"
+    }
+}

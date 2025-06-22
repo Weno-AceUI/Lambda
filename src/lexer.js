@@ -16,12 +16,15 @@ const keywords = {
 };
 
 export class Lexer {
-    constructor(source) {
+    constructor(source, filePath = 'script') {
         this.source = source;
-        this.tokens = [];
         this.start = 0;
         this.current = 0;
         this.line = 1;
+        this.filePath = filePath;
+        this.tokens = [];
+        this.errors = [];
+        this.lineStart = 0;
     }
 
     scanTokens() {
@@ -30,7 +33,7 @@ export class Lexer {
             this.scanToken();
         }
 
-        this.tokens.push({ type: TokenType.EOF, lexeme: "", literal: null, line: this.line });
+        this.tokens.push({ type: TokenType.EOF, lexeme: "", literal: null, line: this.line, column: this.current - this.lineStart });
         return this.tokens;
     }
 
@@ -59,7 +62,7 @@ export class Lexer {
                     }
 
                     if (this.isAtEnd()) {
-                        console.error(`[line ${this.line}] Unterminated comment.`);
+                        this.reportError("Unterminated comment.");
                     } else {
                         // Consume the closing '**'
                         this.advance();
@@ -87,6 +90,7 @@ export class Lexer {
 
             case '\n':
                 this.line++;
+                this.lineStart = this.current;
                 break;
 
             default:
@@ -95,7 +99,7 @@ export class Lexer {
                 } else if (this.isAlpha(c)) {
                     this.identifier();
                 } else {
-                    console.error(`[line ${this.line}] Unexpected character: ${c}`);
+                    this.reportError(`Unexpected character: '${c}'`);
                 }
                 break;
         }
@@ -107,7 +111,8 @@ export class Lexer {
 
     addToken(type, literal = null) {
         const text = this.source.substring(this.start, this.current);
-        this.tokens.push({ type, lexeme: text, literal, line: this.line });
+        const column = this.start - this.lineStart;
+        this.tokens.push({ type, lexeme: text, literal, line: this.line, column });
     }
 
     match(expected) {
@@ -161,7 +166,7 @@ export class Lexer {
         }
 
         if (this.isAtEnd()) {
-            console.error(`[line ${this.line}] Unterminated string.`);
+            this.reportError("Unterminated string.");
             return;
         }
 
@@ -180,5 +185,20 @@ export class Lexer {
         const text = this.source.substring(this.start, this.current);
         const type = keywords[text] || TokenType.IDENTIFIER;
         this.addToken(type);
+    }
+
+    reportError(message) {
+        const column = this.current - this.lineStart - 1;
+        this.errors.push({
+            range: {
+                start: { line: this.line - 1, character: column },
+                end: { line: this.line - 1, character: column + 1 }
+            },
+            message: message,
+            severity: 1 // Error
+        });
+
+        // Also log to console for the command-line runner
+        console.error(`[${this.filePath}:${this.line}] Error: ${message}`);
     }
 }

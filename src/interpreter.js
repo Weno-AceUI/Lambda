@@ -69,9 +69,10 @@ class LambdaClass {
  * The Interpreter walks the Abstract Syntax Tree and executes the code.
  */
 export class Interpreter {
-    constructor() {
+    constructor(filePath = 'script') {
         this.globals = new Environment();
         this.environment = this.globals;
+        this.filePath = filePath;
 
         // --- Native Functions: The bridge to the OpenAce OS ---
 
@@ -117,6 +118,16 @@ export class Interpreter {
             },
             toString: () => "<native class Button>"
         });
+
+        this.globals.define("Label", {
+            arity: () => 1, // Expects a text string
+            call: (interpreter, args) => {
+                const text = args[0];
+                console.log(`[Native UI] Creating Label with text: "${text}"`);
+                return { type: "NativeInstance", class: "Label", text: text, toString: () => `<ui label: ${text}>` };
+            },
+            toString: () => "<native class Label>"
+        });
     }
 
     interpret(statements) {
@@ -126,7 +137,7 @@ export class Interpreter {
             }
         } catch (error) {
             if (error instanceof RuntimeError) {
-                console.error(`RuntimeError: ${error.message} [line ${error.token.line}]`);
+                console.error(`[${this.filePath}:${error.token.line}] RuntimeError: ${error.message}`);
             } else {
                 console.error(`An unexpected error occurred: ${error}`);
             }

@@ -48,7 +48,7 @@
             ]
         },
         "comments": {
-            "name": "comment.line.double-slash.lambda",
+            "name": "comment.block.lambda",
             "begin": "\\*\\*",
             "end": "\\*\\*"
         },

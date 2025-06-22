@@ -1,0 +1,51 @@
+**
+    test.lba - A comprehensive test file for Lambda v0.1.0
+    This file demonstrates all major features of the language.
+**
+
+** --- 1. Basic Expressions and Variables --- **
+print "--- Testing Expressions ---";
+let a = 10;
+let b = 20;
+let result = (a * 2) + b;
+print "Calculation result: " + result; ** Should be 40 **
+
+let truthy = (a < b) == true;
+print "Is a < b? " + truthy; ** Should be true **
+
+** --- 2. Classes and Instances --- **
+print ""; ** empty line for spacing **
+print "--- Testing Classes ---";
+
+class Point {
+    init(x, y) {
+        this.x = x;
+        this.y = y;
+    }
+
+    move(dx, dy) {
+        this.x = this.x + dx;
+        this.y = this.y + dy;
+    }
+
+    static origin() {
+        return Point(0, 0);
+    }
+}
+
+let p1 = Point(3, 4);
+p1.move(7, -2);
+print "Moved point: " + p1.x + ", " + p1.y; ** Should be 10, 2 **
+
+** --- 3. UI Declarations and Native Components --- **
+print "";
+print "--- Testing UI Components ---";
+
+ui main_window = Window("Lambda v0.1.0 Test App");
+ui welcome_label = Label("Welcome to OpenAce!");
+ui action_button = Button("Calculate");
+
+main_window.add(welcome_label);
+main_window.add(action_button);
+
+print "--- Test Complete ---";

@@ -5,9 +5,11 @@ import { TokenType } from './token.js';
  * It checks for grammatical correctness.
  */
 export class Parser {
-    constructor(tokens) {
+    constructor(tokens, filePath = 'script') {
         this.tokens = tokens;
         this.current = 0;
+        this.errors = 0;
+        this.filePath = filePath;
     }
 
     /**
@@ -306,9 +308,10 @@ export class Parser {
     }
 
     error(token, message) {
-        // A more sophisticated error reporting would be needed for a real language
-        const err = new Error(`${message} [line ${token.line}]`);
+        const location = token.type === TokenType.EOF ? "at end" : `at '${token.lexeme}'`;
+        const err = new Error(`[${this.filePath}:${token.line}] Error ${location}: ${message}`);
         console.error(err.message);
+        this.errors++;
         return err;
     }
 

@@ -3,6 +3,7 @@
     "displayName": "Lambda Language Support",
     "description": "Syntax highlighting for the Lambda programming language for OpenAce.",
     "version": "0.0.1",
+    "main": "./extension.js",
     "publisher": "lambda-lang",
     "engines": {
         "vscode": "^1.70.0"
@@ -10,6 +11,12 @@
     "categories": [
         "Programming Languages"
     ],
+    "activationEvents": [
+        "onLanguage:lambda"
+    ],
+    "dependencies": {
+        "vscode-languageclient": "^7.0.0"
+    },
     "contributes": {
         "languages": [
             {
@@ -24,6 +31,13 @@
                 "language": "lambda",
                 "scopeName": "source.lba",
                 "path": "./syntaxes/lambda.tmLanguage.json"
+            }
+        ],
+        "iconThemes": [
+            {
+                "id": "lambda-icons",
+                "label": "Lambda Icons",
+                "path": "./lambda-icon-theme.json"
             }
         ]
     }
