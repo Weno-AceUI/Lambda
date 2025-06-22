@@ -117,7 +117,7 @@ export class Parser {
     }
 
     expression() {
-        return this.equality();
+        return this.assignment();
     }
 
     equality() {

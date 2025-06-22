@@ -37,6 +37,9 @@ export const TokenType = {
     THIS: 'THIS',
     STATIC: 'STATIC',
     UI: 'UI',
+    TRUE: 'TRUE',
+    FALSE: 'FALSE',
+    NIL: 'NIL',
 
     EOF: 'EOF'
 };

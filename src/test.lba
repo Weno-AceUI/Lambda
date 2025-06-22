@@ -1,0 +1,12 @@
+** Re-assigning a field **
+my_greeter.name = "OpenAce Developer";
+my_greeter.sayHello();
+
+** --- UI Component Test --- **
+let main_window = Window("Component Test");
+let welcome_label = Label("Welcome to Lambda!");
+let ok_button = Button("OK");
+
+main_window.add(welcome_label);
+main_window.add(ok_button);
+

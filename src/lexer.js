@@ -1,11 +1,18 @@
 import { TokenType } from './token.js';
 
 const keywords = {
-    "fn": TokenType.FN,
-    "let": TokenType.LET,
-    "if": TokenType.IF,
+    "class": TokenType.CLASS,
     "else": TokenType.ELSE,
+    "fn": TokenType.FN,
+    "if": TokenType.IF,
+    "let": TokenType.LET,
     "print": TokenType.PRINT,
+    "this": TokenType.THIS,
+    "static": TokenType.STATIC,
+    "ui": TokenType.UI,
+    "true": TokenType.TRUE,
+    "false": TokenType.FALSE,
+    "nil": TokenType.NIL,
 };
 
 export class Lexer {
