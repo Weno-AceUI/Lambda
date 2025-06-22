@@ -1,8 +1,12 @@
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import { Lexer } from './lexer.js';
 import { Parser } from './parser.js';
 import { Interpreter } from './interpreter.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 function run(source, filePath) {
     const lexer = new Lexer(source, filePath);
@@ -38,5 +42,5 @@ if (args.length > 1) {
 } else if (args.length === 1) {
     runFile(args[0]);
 } else {
-    console.log("Usage: node src/main.js [script]");
+    runFile(path.resolve(__dirname, '..', 'vscode-lambda', 'test.lba')); // Run test.lba by default
 }

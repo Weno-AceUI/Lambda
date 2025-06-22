@@ -1,5 +1,6 @@
 import { Environment, RuntimeError } from './environment.js';
 import { TokenType } from './token.js';
+import { WebCpp } from './webcpp-bindings.js'; // Import our WebCpp binding layer
 
 class LambdaFunction {
     constructor(declaration, closure, isInitializer) {
@@ -87,46 +88,130 @@ export class Interpreter {
         this.globals.define("Window", {
             arity: () => 1, // Expects a title string
             call: (interpreter, args) => {
-                const title = args[0];
-                console.log(`[Native UI] Creating Window with title: "${title}"`);
-                // In a real system, this would call WebCpp and return an object with native methods
+                const title = this.stringify(args[0]); // Ensure title is a string
+                const nativeWindow = WebCpp.createWindow(title); // Call into the native binding
+
                 const windowInstance = {
                     type: "NativeInstance",
                     class: "Window",
-                    properties: {},
-                    toString: () => `<ui window: ${title}>`
+                    properties: {}, // Methods will be added here
+                    nativeObject: nativeWindow, // Store the actual native object
+                    toString: () => `<ui window: ${nativeWindow.title}>`
                 };
 
                 // Define an 'add' method on this specific window instance
                 windowInstance.properties['add'] = {
                     arity: () => 1,
                     call: (interpreter, args) => {
-                        console.log(`[Native UI] Adding ${args[0].toString()} to ${windowInstance.toString()}`);
+                        // Assuming args[0] is another NativeInstance with a 'nativeObject' property
+                        nativeWindow.add(args[0].nativeObject);
                     }
                 };
                 return windowInstance;
             },
             toString: () => "<native class Window>"
         });
-
         this.globals.define("Button", {
             arity: () => 1, // Expects a label string
             call: (interpreter, args) => {
-                const label = args[0];
-                console.log(`[Native UI] Creating Button with label: "${label}"`);
-                return { type: "NativeInstance", class: "Button", label: label, toString: () => `<ui button: ${label}>` };
+                const label = this.stringify(args[0]);
+                const nativeButton = WebCpp.createButton(label);
+                return { type: "NativeInstance", class: "Button", nativeObject: nativeButton, toString: () => `<ui button: ${nativeButton.label}>` };
             },
             toString: () => "<native class Button>"
         });
-
         this.globals.define("Label", {
             arity: () => 1, // Expects a text string
             call: (interpreter, args) => {
-                const text = args[0];
-                console.log(`[Native UI] Creating Label with text: "${text}"`);
-                return { type: "NativeInstance", class: "Label", text: text, toString: () => `<ui label: ${text}>` };
+                const text = this.stringify(args[0]);
+                const nativeLabel = WebCpp.createLabel(text);
+                return { type: "NativeInstance", class: "Label", nativeObject: nativeLabel, toString: () => `<ui label: ${nativeLabel.text}>` };
             },
             toString: () => "<native class Label>"
+        });
+
+        this.globals.define("IconGrid", {
+            arity: () => 0,
+            call: (interpreter, args) => {
+                const nativeGrid = WebCpp.createIconGrid();
+                const gridInstance = {
+                    type: "NativeInstance",
+                    class: "IconGrid",
+                    properties: {},
+                    nativeObject: nativeGrid,
+                    toString: () => `<ui icongrid>`
+                };
+                gridInstance.properties['add'] = {
+                    arity: () => 1,
+                    call: (interpreter, args) => {
+                        nativeGrid.add(args[0].nativeObject);
+                    }
+                };
+                return gridInstance;
+            },
+            toString: () => "<native class IconGrid>"
+        });
+
+        this.globals.define("Dock", {
+            arity: () => 0,
+            call: (interpreter, args) => {
+                const nativeDock = WebCpp.createDock();
+                const dockInstance = {
+                    type: "NativeInstance",
+                    class: "Dock",
+                    properties: {},
+                    nativeObject: nativeDock,
+                    toString: () => `<ui dock>`
+                };
+                dockInstance.properties['add'] = {
+                    arity: () => 1,
+                    call: (interpreter, args) => {
+                        nativeDock.add(args[0].nativeObject);
+                    }
+                };
+                return dockInstance;
+            },
+            toString: () => "<native class Dock>"
+        });
+
+        this.globals.define("AppIcon", {
+            arity: () => 2, // label, iconPath
+            call: (interpreter, args) => {
+                const label = this.stringify(args[0]);
+                const iconPath = this.stringify(args[1]);
+                const nativeIcon = WebCpp.createAppIcon(label, iconPath);
+                return {
+                    type: "NativeInstance",
+                    class: "AppIcon",
+                    nativeObject: nativeIcon,
+                    toString: () => `<ui appicon: ${label}>`
+                };
+            },
+            toString: () => "<native class AppIcon>"
+        });
+
+        this.globals.define("len", {
+            arity: () => 1,
+            call: (interpreter, args) => {
+                const list = args[0];
+                if (!Array.isArray(list)) {
+                    throw new RuntimeError(null, "Argument to len() must be a list.");
+                }
+                return list.length;
+            },
+            toString: () => "<native fn len>"
+        });
+
+        this.globals.define("get", {
+            arity: () => 2,
+            call: (interpreter, args) => {
+                const [list, index] = args;
+                if (!Array.isArray(list) || typeof index !== 'number') {
+                    throw new RuntimeError(null, "get() requires a list and a number index.");
+                }
+                return list[index] || null; // Return nil if out of bounds
+            },
+            toString: () => "<native fn get>"
         });
     }
 
@@ -175,6 +260,15 @@ export class Interpreter {
     }
 
     // --- Statement Visitors ---
+
+    visitIfStatement(stmt) {
+        if (this.isTruthy(this.evaluate(stmt.condition))) {
+            this.execute(stmt.thenBranch);
+        } else if (stmt.elseBranch !== null) {
+            this.execute(stmt.elseBranch);
+        }
+        return null;
+    }
 
     visitVarStatement(stmt) {
         let value = null;
@@ -234,6 +328,14 @@ export class Interpreter {
 
     visitLiteralExpression(expr) {
         return expr.value;
+    }
+
+    visitListLiteralExpression(expr) {
+        const elements = [];
+        for (const elementExpr of expr.elements) {
+            elements.push(this.evaluate(elementExpr));
+        }
+        return elements;
     }
 
     visitVariableExpression(expr) {

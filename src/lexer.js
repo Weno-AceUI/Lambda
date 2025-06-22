@@ -4,6 +4,7 @@ const keywords = {
     "class": TokenType.CLASS,
     "else": TokenType.ELSE,
     "fn": TokenType.FN,
+    "while": TokenType.WHILE,
     "if": TokenType.IF,
     "let": TokenType.LET,
     "print": TokenType.PRINT,
@@ -47,7 +48,9 @@ export class Lexer {
             case '(': this.addToken(TokenType.LEFT_PAREN); break;
             case ')': this.addToken(TokenType.RIGHT_PAREN); break;
             case '{': this.addToken(TokenType.LEFT_BRACE); break;
+            case '[': this.addToken(TokenType.LEFT_BRACKET); break;
             case '}': this.addToken(TokenType.RIGHT_BRACE); break;
+            case ']': this.addToken(TokenType.RIGHT_BRACKET); break;
             case ',': this.addToken(TokenType.COMMA); break;
             case '.': this.addToken(TokenType.DOT); break;
             case '-': this.addToken(TokenType.MINUS); break;

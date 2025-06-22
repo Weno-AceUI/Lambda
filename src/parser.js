@@ -57,6 +57,7 @@ export class Parser {
     }
 
     statement() {
+        if (this.match(TokenType.IF)) return this.ifStatement();
         if (this.match(TokenType.PRINT)) return this.printStatement();
         if (this.match(TokenType.LEFT_BRACE)) return { type: 'BlockStatement', statements: this.block() };
 
@@ -116,6 +117,20 @@ export class Parser {
         const value = this.expression();
         this.consume(TokenType.SEMICOLON, "Expect ';' after value.");
         return { type: 'PrintStatement', expression: value };
+    }
+
+    ifStatement() {
+        this.consume(TokenType.LEFT_PAREN, "Expect '(' after 'if'.");
+        const condition = this.expression();
+        this.consume(TokenType.RIGHT_PAREN, "Expect ')' after if condition.");
+
+        const thenBranch = this.statement();
+        let elseBranch = null;
+        if (this.match(TokenType.ELSE)) {
+            elseBranch = this.statement();
+        }
+
+        return { type: 'IfStatement', condition, thenBranch, elseBranch };
     }
 
     expression() {
@@ -243,6 +258,17 @@ export class Parser {
 
         if (this.match(TokenType.IDENTIFIER)) {
             return { type: 'VariableExpression', name: this.previous() };
+        }
+
+        if (this.match(TokenType.LEFT_BRACKET)) {
+            const elements = [];
+            if (!this.check(TokenType.RIGHT_BRACKET)) {
+                do {
+                    elements.push(this.expression());
+                } while (this.match(TokenType.COMMA));
+            }
+            this.consume(TokenType.RIGHT_BRACKET, "Expect ']' after list elements.");
+            return { type: 'ListLiteralExpression', elements: elements };
         }
 
         throw this.error(this.peek(), "Expect expression.");
