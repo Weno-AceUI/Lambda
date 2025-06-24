@@ -116,16 +116,30 @@ export class Interpreter {
             call: (interpreter, args) => {
                 const label = this.stringify(args[0]);
                 const nativeButton = WebCpp.createButton(label);
-                return { type: "NativeInstance", class: "Button", nativeObject: nativeButton, toString: () => `<ui button: ${nativeButton.label}>` };
+                return { type: "NativeInstance", class: "Button", properties: {}, nativeObject: nativeButton, toString: () => `<ui button: ${nativeButton.label}>` };
             },
             toString: () => "<native class Button>"
         });
         this.globals.define("Label", {
-            arity: () => 1, // Expects a text string
+            arity: () => -1, // Variadic: 1 or 2 arguments
             call: (interpreter, args) => {
+                if (args.length < 1 || args.length > 2) {
+                    throw new RuntimeError(null, "Label() expects 1 or 2 arguments: (text, [classes]).");
+                }
+
                 const text = this.stringify(args[0]);
-                const nativeLabel = WebCpp.createLabel(text);
-                return { type: "NativeInstance", class: "Label", nativeObject: nativeLabel, toString: () => `<ui label: ${nativeLabel.text}>` };
+                let classes = [];
+
+                if (args.length === 2) {
+                    const classList = args[1];
+                    if (!Array.isArray(classList)) {
+                        throw new RuntimeError(null, "Second argument to Label() must be a list of strings.");
+                    }
+                    classes = classList.map(item => this.stringify(item));
+                }
+
+                const nativeLabel = WebCpp.createLabel(text, classes);
+                return { type: "NativeInstance", class: "Label", properties: {}, nativeObject: nativeLabel, toString: () => `<ui label: ${nativeLabel.text}>` };
             },
             toString: () => "<native class Label>"
         });
@@ -183,11 +197,28 @@ export class Interpreter {
                 return {
                     type: "NativeInstance",
                     class: "AppIcon",
+                    properties: {},
                     nativeObject: nativeIcon,
                     toString: () => `<ui appicon: ${label}>`
                 };
             },
             toString: () => "<native class AppIcon>"
+        });
+
+        this.globals.define("BackgroundImage", {
+            arity: () => 1, // imagePath
+            call: (interpreter, args) => {
+                const imagePath = this.stringify(args[0]);
+                const nativeBgImage = WebCpp.createBackgroundImage(imagePath);
+                return {
+                    type: "NativeInstance",
+                    class: "BackgroundImage",
+                    properties: {},
+                    nativeObject: nativeBgImage,
+                    toString: () => `<ui background: ${imagePath}>`
+                };
+            },
+            toString: () => "<native class BackgroundImage>"
         });
 
         this.globals.define("len", {
@@ -266,6 +297,33 @@ export class Interpreter {
             this.execute(stmt.thenBranch);
         } else if (stmt.elseBranch !== null) {
             this.execute(stmt.elseBranch);
+        }
+        return null;
+    }
+
+    visitHandleStatement(stmt) {
+        const component = this.environment.get(stmt.componentName); // Get the UI component instance
+        const eventName = stmt.eventName.lexeme; // Get the event name string
+
+        if (component && component.type === 'NativeInstance' && component.nativeObject) {
+            // Create a LambdaFunction that wraps the block and captures the current environment
+            const callbackFunction = {
+                arity: () => 0, // Event handlers typically take no arguments or event object
+                call: (interpreter, args) => {
+                    // Execute the block in a new environment that extends the captured one
+                    interpreter.executeBlock(stmt.body, new Environment(this.environment));
+                    return null;
+                },
+                toString: () => `<event handler for ${eventName}>`
+            };
+
+            if (typeof component.nativeObject.setEventHandler === 'function') {
+                component.nativeObject.setEventHandler(eventName, callbackFunction);
+            } else {
+                throw new RuntimeError(stmt.componentName, `UI component '${stmt.componentName.lexeme}' does not support event handling for '${eventName}'.`);
+            }
+        } else {
+            throw new RuntimeError(stmt.componentName, `Cannot attach event handler to non-UI component '${stmt.componentName.lexeme}'.`);
         }
         return null;
     }
@@ -443,9 +501,10 @@ export class Interpreter {
         }
 
         const func = callee.call ? callee : callee;
-        if (args.length !== func.arity()) {
+        const arity = func.arity();
+        if (arity >= 0 && args.length !== arity) {
             const errorToken = expr.callee.name || expr.callee;
-            throw new RuntimeError(errorToken, `Expected ${func.arity()} arguments but got ${args.length}.`);
+            throw new RuntimeError(errorToken, `Expected ${arity} arguments but got ${args.length}.`);
         }
 
         return func.call(this, args);

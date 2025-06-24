@@ -33,6 +33,8 @@ export const TokenType = {
     CLASS: 'CLASS',
     ELSE: 'ELSE',
     FN: 'FN',
+    HANDLE: 'HANDLE',
+    FOR: 'FOR',
     WHILE: 'WHILE',
     IF: 'IF',
     LET: 'LET',

@@ -4,6 +4,8 @@ const keywords = {
     "class": TokenType.CLASS,
     "else": TokenType.ELSE,
     "fn": TokenType.FN,
+    "handle": TokenType.HANDLE,
+    "for": TokenType.FOR,
     "while": TokenType.WHILE,
     "if": TokenType.IF,
     "let": TokenType.LET,

@@ -1,7 +1,7 @@
 {
     "iconDefinitions": {
         "_lambda_icon": {
-            "iconPath": "./lambda-icon.svg"
+            "iconPath": "./../lambda.svg"
         }
     },
     "fileExtensions": {

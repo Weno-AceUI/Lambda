@@ -49,3 +49,4 @@ main_window.add(welcome_label);
 main_window.add(action_button);
 
 print "--- Test Complete ---";
+

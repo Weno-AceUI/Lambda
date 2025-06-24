@@ -24,7 +24,7 @@
             "patterns": [
                 {
                     "name": "keyword.control.lambda",
-                    "match": "\\b(if|else)\\b"
+                    "match": "\\b(if|else|while|for|handle)\\b"
                 },
                 {
                     "name": "keyword.other.lambda",

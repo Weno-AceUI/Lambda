@@ -29,6 +29,7 @@ export class Parser {
     declaration() {
         try {
             if (this.match(TokenType.CLASS)) return this.classDeclaration();
+            if (this.match(TokenType.HANDLE)) return this.handleDeclaration();
             if (this.match(TokenType.UI)) return this.uiDeclaration();
             if (this.match(TokenType.LET)) return this.varDeclaration();
 
@@ -58,6 +59,8 @@ export class Parser {
 
     statement() {
         if (this.match(TokenType.IF)) return this.ifStatement();
+        if (this.match(TokenType.HANDLE)) return this.handleDeclaration(); // Allow handle as a statement
+        if (this.match(TokenType.FOR)) return this.forStatement();
         if (this.match(TokenType.PRINT)) return this.printStatement();
         if (this.match(TokenType.LEFT_BRACE)) return { type: 'BlockStatement', statements: this.block() };
 
@@ -131,6 +134,60 @@ export class Parser {
         }
 
         return { type: 'IfStatement', condition, thenBranch, elseBranch };
+    }
+
+    handleDeclaration() {
+        // This logic is duplicated from a previous step, ensuring it's here.
+        const componentName = this.consume(TokenType.IDENTIFIER, "Expect component name after 'handle'.");
+        this.consume(TokenType.DOT, "Expect '.' after component name in handle declaration.");
+        const eventName = this.consume(TokenType.IDENTIFIER, "Expect event name after '.'.");
+
+        this.consume(TokenType.LEFT_BRACE, "Expect '{' before handle block.");
+        const body = this.block();
+
+        // Note: The parser creates a 'HandleStatement', which the interpreter will visit.
+        return { type: 'HandleStatement', componentName, eventName, body };
+    }
+
+    forStatement() {
+        this.consume(TokenType.LEFT_PAREN, "Expect '(' after 'for'.");
+
+        let initializer;
+        if (this.match(TokenType.SEMICOLON)) {
+            initializer = null;
+        } else if (this.match(TokenType.LET)) {
+            initializer = this.varDeclaration();
+        } else {
+            initializer = this.expressionStatement();
+        }
+
+        let condition = null;
+        if (!this.check(TokenType.SEMICOLON)) {
+            condition = this.expression();
+        }
+        this.consume(TokenType.SEMICOLON, "Expect ';' after loop condition.");
+
+        let increment = null;
+        if (!this.check(TokenType.RIGHT_PAREN)) {
+            increment = this.expression();
+        }
+        this.consume(TokenType.RIGHT_PAREN, "Expect ')' after for clauses.");
+
+        let body = this.statement();
+
+        // Desugaring: Convert the for loop into a block with a while loop
+        if (increment !== null) {
+            body = { type: 'BlockStatement', statements: [body, { type: 'ExpressionStatement', expression: increment }] };
+        }
+
+        if (condition === null) condition = { type: 'LiteralExpression', value: true }; // Infinite loop if no condition
+        body = { type: 'WhileStatement', condition: condition, body: body };
+
+        if (initializer !== null) {
+            body = { type: 'BlockStatement', statements: [initializer, body] };
+        }
+
+        return body;
     }
 
     expression() {
@@ -348,8 +405,14 @@ export class Parser {
             if (this.previous().type === TokenType.SEMICOLON) return;
 
             switch (this.peek().type) {
+                case TokenType.CLASS:
                 case TokenType.FN:
                 case TokenType.LET:
+                case TokenType.UI:
+                case TokenType.FOR:
+                case TokenType.IF:
+                case TokenType.PRINT:
+                case TokenType.HANDLE:
                     return;
             }
             this.advance();
