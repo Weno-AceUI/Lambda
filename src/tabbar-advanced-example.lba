@@ -1,0 +1,38 @@
+ui window = Window("Advanced Tab Bar Demo");
+
+ui tabBar = TabBar();
+
+ui homeButton = Button("Go to Settings");
+ui homeContent = Label("Home Tab - Welcome!");
+ui homeContainer = IconGrid();
+homeContainer.add(homeButton);
+homeContainer.add(homeContent);
+
+ui settingsContent = Label("Settings Tab - Configure your app");
+ui settingsButton = Button("Save Settings");
+
+ui profileContent = Label("Profile Tab - User information");
+ui profileButton = Button("Edit Profile");
+
+ui homeTab = Tab("Home", homeContainer);
+ui settingsTab = Tab("Settings", settingsContent);
+ui profileTab = Tab("Profile", profileContent);
+
+tabBar.addTab(homeTab);
+tabBar.addTab(settingsTab);
+tabBar.addTab(profileTab);
+
+handle homeButton.click {
+    print "Switching to Settings tab from Home";
+    tabBar.setActiveTab(1);
+}
+
+handle settingsButton.click {
+    print "Settings saved!";
+}
+
+handle profileButton.click {
+    print "Profile edit mode activated!";
+}
+
+window.add(tabBar); 

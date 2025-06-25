@@ -48,5 +48,8 @@ ui action_button = Button("Calculate");
 main_window.add(welcome_label);
 main_window.add(action_button);
 
+let app_icon = AppIcon("Test App", "/path/to/icon.png");
+main_window.add(app_icon);
+
 print "--- Test Complete ---";
 

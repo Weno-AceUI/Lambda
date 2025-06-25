@@ -1,0 +1,32 @@
+// Test file for background color functionality
+
+// Create a window with a background color
+ui mainWindow = Window("Background Color Demo");
+
+// Method 1: Using the dedicated BackgroundColor component
+ui bgColor = BackgroundColor("#e3f2fd");
+mainWindow.add(bgColor);
+
+// Method 2: Using setBackgroundColor method on components
+ui myButton = Button("Click me!");
+myButton.setBackgroundColor("#4caf50");
+
+ui myLabel = Label("Hello, colored world!");
+myLabel.setBackgroundColor("#ffeb3b");
+
+// Add components to the window
+mainWindow.add(myButton);
+mainWindow.add(myLabel);
+
+// Method 3: Setting background color on the window itself
+mainWindow.setBackgroundColor("#f5f5f5");
+
+// Create a button with event handling
+ui coloredButton = Button("Colored Button");
+coloredButton.setBackgroundColor("#2196f3");
+
+handle coloredButton.click {
+    print "Button clicked!";
+}
+
+mainWindow.add(coloredButton); 

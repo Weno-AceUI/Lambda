@@ -1,0 +1,17 @@
+ui window = Window("Tab Bar Demo");
+
+ui tabBar = TabBar();
+
+ui homeContent = Label("Welcome to the Home tab!");
+ui settingsContent = Label("This is the Settings tab");
+ui profileContent = Label("Profile information goes here");
+
+ui homeTab = Tab("Home", homeContent);
+ui settingsTab = Tab("Settings", settingsContent);
+ui profileTab = Tab("Profile", profileContent);
+
+tabBar.addTab(homeTab);
+tabBar.addTab(settingsTab);
+tabBar.addTab(profileTab);
+
+window.add(tabBar); 

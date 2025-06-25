@@ -1,0 +1,16 @@
+ui window = Window("Background Colors");
+
+ui bg = BackgroundColor("#87CEEB");
+window.add(bg);
+
+ui title = Label("Welcome to Lambda UI");
+title.setBackgroundColor("#FFD700");
+window.add(title);
+
+ui button = Button("Click me");
+button.setBackgroundColor("#98FB98");
+window.add(button);
+
+handle button.click {
+    print "Button clicked!";
+} 

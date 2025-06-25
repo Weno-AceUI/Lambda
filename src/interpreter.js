@@ -107,6 +107,15 @@ export class Interpreter {
                         nativeWindow.add(args[0].nativeObject);
                     }
                 };
+
+                // Add setBackgroundColor method
+                windowInstance.properties['setBackgroundColor'] = {
+                    arity: () => 1,
+                    call: (interpreter, args) => {
+                        const color = interpreter.stringify(args[0]);
+                        nativeWindow.setBackgroundColor(color);
+                    }
+                };
                 return windowInstance;
             },
             toString: () => "<native class Window>"
@@ -116,7 +125,23 @@ export class Interpreter {
             call: (interpreter, args) => {
                 const label = this.stringify(args[0]);
                 const nativeButton = WebCpp.createButton(label);
-                return { type: "NativeInstance", class: "Button", properties: {}, nativeObject: nativeButton, toString: () => `<ui button: ${nativeButton.label}>` };
+                const buttonInstance = {
+                    type: "NativeInstance", 
+                    class: "Button", 
+                    properties: {}, 
+                    nativeObject: nativeButton, 
+                    toString: () => `<ui button: ${nativeButton.label}>`
+                };
+
+                // Add setBackgroundColor method
+                buttonInstance.properties['setBackgroundColor'] = {
+                    arity: () => 1,
+                    call: (interpreter, args) => {
+                        const color = interpreter.stringify(args[0]);
+                        nativeButton.setBackgroundColor(color);
+                    }
+                };
+                return buttonInstance;
             },
             toString: () => "<native class Button>"
         });
@@ -139,7 +164,23 @@ export class Interpreter {
                 }
 
                 const nativeLabel = WebCpp.createLabel(text, classes);
-                return { type: "NativeInstance", class: "Label", properties: {}, nativeObject: nativeLabel, toString: () => `<ui label: ${nativeLabel.text}>` };
+                const labelInstance = {
+                    type: "NativeInstance", 
+                    class: "Label", 
+                    properties: {}, 
+                    nativeObject: nativeLabel, 
+                    toString: () => `<ui label: ${nativeLabel.text}>`
+                };
+
+                // Add setBackgroundColor method
+                labelInstance.properties['setBackgroundColor'] = {
+                    arity: () => 1,
+                    call: (interpreter, args) => {
+                        const color = interpreter.stringify(args[0]);
+                        nativeLabel.setBackgroundColor(color);
+                    }
+                };
+                return labelInstance;
             },
             toString: () => "<native class Label>"
         });
@@ -219,6 +260,91 @@ export class Interpreter {
                 };
             },
             toString: () => "<native class BackgroundImage>"
+        });
+
+        this.globals.define("BackgroundColor", {
+            arity: () => 1, // color
+            call: (interpreter, args) => {
+                const color = this.stringify(args[0]);
+                const nativeBgColor = WebCpp.createBackgroundColor(color);
+                return {
+                    type: "NativeInstance",
+                    class: "BackgroundColor",
+                    properties: {},
+                    nativeObject: nativeBgColor,
+                    toString: () => `<ui background-color: ${color}>`
+                };
+            },
+            toString: () => "<native class BackgroundColor>"
+        });
+
+        this.globals.define("TabBar", {
+            arity: () => 0,
+            call: (interpreter, args) => {
+                const nativeTabBar = WebCpp.createTabBar();
+                const tabBarInstance = {
+                    type: "NativeInstance",
+                    class: "TabBar",
+                    properties: {},
+                    nativeObject: nativeTabBar,
+                    toString: () => `<ui tabbar>`
+                };
+
+                tabBarInstance.properties['addTab'] = {
+                    arity: () => 1,
+                    call: (interpreter, args) => {
+                        nativeTabBar.addTab(args[0].nativeObject);
+                    }
+                };
+
+                tabBarInstance.properties['setActiveTab'] = {
+                    arity: () => 1,
+                    call: (interpreter, args) => {
+                        const tabIndex = args[0];
+                        if (typeof tabIndex !== 'number') {
+                            throw new RuntimeError(null, "setActiveTab() expects a number index.");
+                        }
+                        nativeTabBar.setActiveTab(tabIndex);
+                    }
+                };
+
+                // Add event handling support
+                tabBarInstance.properties['setEventHandler'] = {
+                    arity: () => 2,
+                    call: (interpreter, args) => {
+                        const eventName = interpreter.stringify(args[0]);
+                        const callback = args[1];
+                        nativeTabBar.setEventHandler(eventName, callback);
+                    }
+                };
+
+                return tabBarInstance;
+            },
+            toString: () => "<native class TabBar>"
+        });
+
+        this.globals.define("Tab", {
+            arity: () => 2, // title, content
+            call: (interpreter, args) => {
+                const title = this.stringify(args[0]);
+                const content = args[1]; // This should be a UI component
+                
+                if (!content || content.type !== "NativeInstance") {
+                    throw new RuntimeError(null, "Tab() second argument must be a UI component.");
+                }
+
+                const nativeTab = WebCpp.createTab(title, content.nativeObject);
+                const tabInstance = {
+                    type: "NativeInstance",
+                    class: "Tab",
+                    properties: {},
+                    nativeObject: nativeTab,
+                    toString: () => `<ui tab: ${title}>`
+                };
+
+                return tabInstance;
+            },
+            toString: () => "<native class Tab>"
         });
 
         this.globals.define("len", {

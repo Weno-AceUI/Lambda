@@ -1,0 +1,31 @@
+ui window = Window("Complete Tab Bar Demo");
+
+ui tabBar = TabBar();
+
+ui homeContent = Label("Home Tab Content");
+ui settingsContent = Label("Settings Tab Content");
+ui profileContent = Label("Profile Tab Content");
+
+ui homeTab = Tab("Home", homeContent);
+ui settingsTab = Tab("Settings", settingsContent);
+ui profileTab = Tab("Profile", profileContent);
+
+tabBar.addTab(homeTab);
+tabBar.addTab(settingsTab);
+tabBar.addTab(profileTab);
+
+handle tabBar.tabChange {
+    print "Tab changed!";
+}
+
+window.add(tabBar);
+
+ui switchButton = Button("Switch to Profile Tab");
+switchButton.setBackgroundColor("#28a745");
+
+handle switchButton.click {
+    print "Switching to Profile tab programmatically";
+    tabBar.setActiveTab(2);
+}
+
+window.add(switchButton); 

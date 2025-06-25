@@ -141,11 +141,53 @@ class WebCppAppIcon {
     toString() { return `WebCppAppIcon(${this.label})`; }
 
     renderToHTML() {
-        // Use a placeholder SVG for the icon image
-        const placeholderIcon = `<svg width="48" height="48" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" rx="20" fill="#ddd"/><text x="50" y="60" font-size="40" text-anchor="middle" fill="#555">${this.label.charAt(0)}</text></svg>`;
+        const iconImage = `<img src="${this.iconPath}" alt="${this.label}">`;
         return `<div class="app-icon">
-            ${placeholderIcon}
+            ${iconImage}
             <span>${this.label}</span>
+        </div>`;
+    }
+}
+
+/**
+ * Represents a native WebCpp Tab.
+ */
+class WebCppTab {
+    constructor(title, content) {
+        this.title = title;
+        this.content = content;
+    }
+    toString() { return `WebCppTab(${this.title})`; }
+    renderToHTML(isActive = false) {
+        // Only render content if active
+        return `<div class="tab-content${isActive ? ' active' : ''}" data-tab-title="${this.title}">
+            ${this.content ? this.content.renderToHTML() : ''}
+        </div>`;
+    }
+}
+
+/**
+ * Represents a native WebCpp TabBar.
+ */
+class WebCppTabBar {
+    constructor() {
+        this.tabs = [];
+        this.activeTabIndex = 0;
+    }
+    addTab(tab) {
+        this.tabs.push(tab);
+    }
+    toString() { return `WebCppTabBar`; }
+    renderToHTML() {
+        const tabButtons = this.tabs.map((tab, i) =>
+            `<button class="tab-button${i === this.activeTabIndex ? ' active' : ''}" data-tab-index="${i}" onclick="switchTab(${i})">${tab.title}</button>`
+        ).join('');
+        const tabContents = this.tabs.map((tab, i) =>
+            tab.renderToHTML(i === this.activeTabIndex)
+        ).join('');
+        return `<div class="tab-bar">
+            <div class="tab-buttons">${tabButtons}</div>
+            <div class="tab-content-area">${tabContents}</div>
         </div>`;
     }
 }
@@ -157,11 +199,13 @@ export const WebCpp = {
         return rootWindow;
     },
     createButton: (label) => new WebCppButton(label),
-        createLabel: (text, classes) => new WebCppLabel(text, classes),
+    createLabel: (text, classes) => new WebCppLabel(text, classes),
     createIconGrid: () => new WebCppIconGrid(),
     createDock: () => new WebCppDock(),
     createAppIcon: (label, iconPath) => new WebCppAppIcon(label, iconPath),
     createBackgroundImage: (imagePath) => new WebCppBackgroundImage(imagePath),
+    createTabBar: () => new WebCppTabBar(),
+    createTab: (title, content) => new WebCppTab(title, content),
 };
 
 /**
@@ -196,7 +240,7 @@ export function renderPreview() {
         .icon-grid { display: flex; flex-wrap: wrap; justify-content: flex-start; align-content: flex-start; padding: 20px; gap: 20px; flex-grow: 1; z-index: 1; position: relative; }
         .dock { display: flex; justify-content: space-around; align-items: center; padding: 10px; background-color: rgba(200, 200, 200, 0.5); backdrop-filter: blur(10px); border-top: 1px solid #ddd; position: absolute; bottom: 0; width: 100%; z-index: 1; }
         .app-icon { display: flex; flex-direction: column; align-items: center; width: 60px; text-align: center; }
-        .app-icon svg { border-radius: 12px; }
+        .app-icon img { width: 48px; height: 48px; border-radius: 12px; }
         .app-icon span { font-size: 12px; color: #fff; margin-top: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; text-shadow: 1px 1px 2px rgba(0,0,0,0.7); }
         .ui-button { padding: 8px 16px; border-radius: 6px; border: 1px solid #ccc; background-color: #eee; font-size: 14px; cursor: pointer; }
         .ui-label { font-size: 16px; color: #333; padding: 10px; }

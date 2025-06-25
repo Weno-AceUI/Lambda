@@ -1,0 +1,54 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lambda App Preview</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .phone-screen { width: 375px; height: 667px; background-color: #1c1c1e; border-radius: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border: 10px solid #333; display: flex; flex-direction: column; overflow: hidden; position: relative; }
+        .background-image { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-size: cover; background-position: center; z-index: 0; }
+        .status-bar { background-color: transparent; color: white; text-align: center; padding: 5px; font-size: 14px; z-index: 1; position: relative; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); }
+        .icon-grid { display: flex; flex-wrap: wrap; justify-content: flex-start; align-content: flex-start; padding: 20px; gap: 20px; flex-grow: 1; z-index: 1; position: relative; }
+        .dock { display: flex; justify-content: space-around; align-items: center; padding: 10px; background-color: rgba(200, 200, 200, 0.5); backdrop-filter: blur(10px); border-top: 1px solid #ddd; position: absolute; bottom: 0; width: 100%; z-index: 1; }
+        .app-icon { display: flex; flex-direction: column; align-items: center; width: 60px; text-align: center; }
+        .app-icon img { width: 48px; height: 48px; border-radius: 12px; }
+        .app-icon span { font-size: 12px; color: #fff; margin-top: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; text-shadow: 1px 1px 2px rgba(0,0,0,0.7); }
+        .ui-button { padding: 8px 16px; border-radius: 6px; border: 1px solid #ccc; background-color: #eee; font-size: 14px; cursor: pointer; }
+        .ui-label { margin: 8px 0; padding: 8px; border-radius: 4px; }
+        .background-color { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; }
+        /* Weather App Specific Styles */
+        .weather-location { font-size: 24px; color: white; text-align: center; margin-top: 40px; font-weight: 500; text-shadow: 1px 1px 3px rgba(0,0,0,0.5); }
+        .weather-temp { font-size: 96px; color: white; text-align: center; font-weight: 200; margin-top: 0; letter-spacing: -5px; text-shadow: 1px 1px 5px rgba(0,0,0,0.5); }
+        .weather-condition { font-size: 20px; color: rgba(255,255,255,0.8); text-align: center; margin-top: -10px; font-weight: 500; text-shadow: 1px 1px 3px rgba(0,0,0,0.5); }
+        .tab-bar { display: flex; flex-direction: column; height: 100%; }
+        .tab-buttons { display: flex; background-color: #f8f9fa; border-bottom: 1px solid #dee2e6; }
+        .tab-button { flex: 1; padding: 12px 16px; border: none; background: none; cursor: pointer; font-size: 14px; color: #6c757d; transition: all 0.2s; }
+        .tab-button:hover { background-color: #e9ecef; color: #495057; }
+        .tab-button.active { background-color: #007bff; color: white; border-bottom: 2px solid #0056b3; }
+        .tab-content-area { flex: 1; padding: 20px; overflow-y: auto; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+    </style>
+</head>
+<body>
+    <div class="phone-screen" style="">
+            <div class="status-bar">OpenAce</div>
+            <div class="tab-bar">
+            <div class="tab-buttons"><button class="tab-button active" data-tab-index="0" onclick="switchTab(0)">Home</button><button class="tab-button " data-tab-index="1" onclick="switchTab(1)">Settings</button><button class="tab-button " data-tab-index="2" onclick="switchTab(2)">Profile</button></div>
+            <div class="tab-content-area"><div class="tab-content" data-tab-title="Home">
+            <p class="ui-label" style="">Home Tab Content</p>
+        </div></div>
+        </div><button class="ui-button" style="background-color: #28a745;" onclick="console.log('Simulated click for button: Switch to Profile Tab');">Switch to Profile Tab</button>
+        </div>
+    <script>
+        function switchTab(tabIndex) {
+            console.log('Switching to tab:', tabIndex);
+            // In a real implementation, this would trigger the Lambda callback
+            // For now, we just log the action
+        }
+    </script>
+</body>
+</html>
+    
